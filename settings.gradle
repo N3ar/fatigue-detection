@@ -1,0 +1,5 @@
+include ':app'
+include ':openCVLibrary310'
+include ':openCVLibrary2411'
+include ':openCVLibrary249'
+include ':openCVLibrary300'
