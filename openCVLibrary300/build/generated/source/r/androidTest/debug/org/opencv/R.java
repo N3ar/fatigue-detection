@@ -12,9 +12,15 @@ public final class R {
 		public static final int show_fps = 0x7f010000;
 	}
 	public static final class id {
-		public static final int any = 0x7f020000;
-		public static final int back = 0x7f020001;
-		public static final int front = 0x7f020002;
+		public static final int any = 0x7f030000;
+		public static final int back = 0x7f030001;
+		public static final int front = 0x7f030002;
+	}
+	public static final class raw {
+		public static final int haarcascade_frontalcatface = 0x7f020000;
+		public static final int haarcascade_lefteye_2splits = 0x7f020001;
+		public static final int haarcascade_righteye_2splits = 0x7f020002;
+		public static final int lbpcascade_frontalface = 0x7f020003;
 	}
 	public static final class styleable {
 		public static final int[] CameraBridgeViewBase = { 0x7f010000, 0x7f010001 };

@@ -2,6 +2,7 @@ package info6120.james.fatiguedetection;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.renderscript.ScriptGroup;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -13,6 +14,7 @@ import android.view.MenuItem;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+import android.widget.AutoCompleteTextView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -40,6 +42,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileWriter;
+import java.security.spec.ECField;
+import java.sql.Time;
+import java.util.Calendar;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements CvCameraViewListener2 {
 
@@ -53,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     private static final int TM_CCOEFF_NORMED = 3;
     private static final int TM_CCORR = 4;
     private static final int TM_CCORR_NORMED = 5;
+    private static final String COMMA = ",";
+    private static final String NEW_LINE = "\n";
+    private static final String HEADER = "Time,right_eye_x,right_eye_y,left_eye_x,left_eye_y";
 
     private int learn_frames = 0;
     private Mat templateR;
@@ -95,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
     double xCenter = -1;
     double yCenter = -1;
+
+    FileWriter fileWriter = null;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -212,6 +224,27 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.main_activity_surface_view);
         mOpenCvCameraView.setCvCameraViewListener(this);
 
+        Calendar c = Calendar.getInstance();
+        int seconds = c.get(Calendar.SECOND);
+
+        try {
+            File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Classifier_" + seconds + ".csv");
+            System.out.println(folder);
+            //boolean var = false;
+            if (!folder.mkdir()) {
+                System.out.println("Directory not found");
+            }
+
+//            final String filename = folder.toString() + "/Classifier_" + seconds + ".csv";
+
+            fileWriter = new FileWriter(folder);
+            fileWriter.append(HEADER);
+            fileWriter.append(NEW_LINE);
+        } catch (Exception e) {
+            System.out.println("Error Writing File");
+            e.printStackTrace();
+        }
+
         mMethodSeekbar = (SeekBar) findViewById(R.id.methodSeekBar);
         mValue = (TextView) findViewById(R.id.method);
 
@@ -297,8 +330,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         mZoomWindow2.release();
     }
 
-    public Mat onCameraFrame(CvCameraViewFrame inputFrame)
-    {
+    public Mat onCameraFrame(CvCameraViewFrame inputFrame) /*throws IOException*/ {
         // TODO Auto-generated method stub
         mRgba = inputFrame.rgba();
         mGrey = inputFrame.gray();
@@ -370,8 +402,19 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
                 templateL = get_template(mJavaDetectorEye, eyearea_left, 24);
                 learn_frames++;
             } else {
-                match_eye(eyearea_right, templateR, method);
-                match_eye(eyearea_left, templateL, method);
+                Calendar c = Calendar.getInstance();
+                int seconds = c.get(Calendar.SECOND);
+                try {
+                    fileWriter.append(String.valueOf(seconds));
+                    fileWriter.append(COMMA);
+                    match_eye(eyearea_right, templateR, method);
+                    fileWriter.append(COMMA);
+                    match_eye(eyearea_left, templateL, method);
+                    fileWriter.append(NEW_LINE);
+                } catch (Exception e) {
+                    System.out.println("File never created");
+                    e.printStackTrace();
+                }
             }
 
             // Cut eye areas and put them to zoom windows
@@ -485,6 +528,16 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             matchLoc = mmres.maxLoc;
         }
 
+        // TODO: Write time to CSV file in higher level method
+        // run that against training data to test and see if the data is accurate
+        // Use library like SVM to test it
+        try {
+            fileWriter.append(matchLoc.x + "," + matchLoc.y);
+        } catch (Exception e) {
+            System.out.println("Cant store position values");
+            e.printStackTrace();
+        }
+
         Point matchLoc_tx = new Point(matchLoc.x + area.x, matchLoc.y + area.y);
         Point matchLoc_ty = new Point(matchLoc.x + mTemplate.cols() + area.x,
                 matchLoc.y + mTemplate.rows() + area.y);
@@ -534,5 +587,33 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     public void onRecreateClick(View v)
     {
         learn_frames = 0;
+        try {
+            fileWriter.flush();
+            fileWriter.close();
+
+            Calendar c = Calendar.getInstance();
+            int seconds = c.get(Calendar.SECOND);
+
+            try {
+                File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Classifier_" + seconds + ".csv");
+//                boolean var = false;
+                if (!folder.mkdir()) {
+//                    var = folder.mkdir();
+                }
+
+                //final String filename = folder.toString() + "/Classifier_" + seconds + ".csv";
+
+                fileWriter = new FileWriter(folder);
+                fileWriter.append(HEADER);
+                fileWriter.append(NEW_LINE);
+            } catch (Exception e) {
+                System.out.println("Error Writing Next File");
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            System.out.println("Error closing file");
+        }
     }
+
+
 }
