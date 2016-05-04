@@ -231,9 +231,9 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Classifier_" + seconds + ".csv");
             System.out.println(folder);
             //boolean var = false;
-            if (!folder.mkdir()) {
-                System.out.println("Directory not found");
-            }
+//            if (!folder.mkdir()) {
+//                System.out.println("Directory not found");
+//            }
 
 //            final String filename = folder.toString() + "/Classifier_" + seconds + ".csv";
 
@@ -593,13 +593,18 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
             Calendar c = Calendar.getInstance();
             int seconds = c.get(Calendar.SECOND);
+            int minutes = c.get(Calendar.MINUTE);
+            int hour = c.get(Calendar.HOUR);
+            int day = c.get(Calendar.DAY_OF_MONTH);
 
             try {
-                File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Classifier_" + seconds + ".csv");
+                File folder = new File(Environment.getExternalStoragePublicDirectory
+                        (Environment.DIRECTORY_DOCUMENTS), "Classifier_" + day + hour + minutes +
+                        seconds + ".csv");
 //                boolean var = false;
-                if (!folder.mkdir()) {
+//                if (!folder.mkdir()) {
 //                    var = folder.mkdir();
-                }
+//                }
 
                 //final String filename = folder.toString() + "/Classifier_" + seconds + ".csv";
 
